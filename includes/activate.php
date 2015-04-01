@@ -61,9 +61,22 @@ class GFUCC4S_Activate
 
 		}
 
+	// 
 	public function AdminInit()
 	{
 		if (!$this->CheckDependencies())
+		{
 			deactivate_plugins($this->PluginName);
+			add_action('admin_notices', array($this, 'PluginDeactivatedNotice'));
+		}
+	}
+
+	public function PluginDeactivatedNotice()
+	{
+		echo '<div class="error">
+			<p>Gravity Forms Update Credit Card for Stripe plugin deactivated! The required dependencies are not installed or activated.</p>
+		</div>';
+
+	    remove_action('admin_notices', array($this, 'PluginDeactivatedNotice'));
 	}
 }

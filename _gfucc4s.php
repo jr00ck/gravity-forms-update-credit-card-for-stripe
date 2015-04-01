@@ -13,7 +13,6 @@ class GFUCC4S
 	// Register any hooks here.
 	public function __construct()
 	{
-		var_dump('GFUCC4S');
 		$this->Activate = new GFUCC4S_Activate();
 		$this->Stripe = new GFUCC4S_Stripe();
 		$this->UI = new GFUCC4S_UI($this->Stripe);

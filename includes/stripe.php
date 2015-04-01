@@ -9,13 +9,15 @@ class GFUCC4S_Stripe
 
 	private $ApiKeySetup = false;
 
-	// TODO: Set options
 	public function __construct()
 	{
+		// TODO: Set options
 
 	}
 
 
+	// Responsible for initializing Stripe API communication. This needs to be
+	// called before any stripe methods will work properly.
 	public function SetupApiKey()
 	{
 		if ($this->ApiKeySetup) return;
@@ -34,32 +36,62 @@ class GFUCC4S_Stripe
 		$this->ApiKeySetup = true;
 	}
 
+	// Responsible for retrieving an event from Stripe. Use this to process
+	// a Stripe WebHook to ensure the event really came from Stripe.
+	// $args:
+	//		- $event_id => String; Should be a valid Stripe Event ID
 	public function RetrieveEvent($event_id)
 	{
 		$this->SetupApiKey();
 		return Stripe_Event::retrieve($event_id);
 	}
 
+	// Responsible for retrieving a customer from Stripe
+	// $args:
+	//		- $customer_id => String; Should be a valid Stripe Customer ID
 	public function RetrieveCustomer($customer_id)
 	{
 		$this->SetupApiKey();
 		return Stripe_Customer::retrieve($customer_id);
 	}
 
+	// This is responsible for sending a charge failure message to a customer
+	// when we get the notification via a Stripe WebHook. We want to keep the
+	// message itself outside of the method because other objects might use
+	// this method and want to send differnt message for different situations.
+	// $args:
+	//		- $customer_id => String; Should be a valid Stripe Customer ID
+	//		- $mail => Array;
+	//			- from => String; Who the mail is from
+	//			- subject => String; The subject of the email
+	//			- body => String; The body of the email in HTML format.
 	public function NotifyCustomerChargeFailed($customer_id, $mail)
 	{
 		$this->SetupApiKey();
 
-		$customer = $this->RetrieveCustomer($customer_id);
-		wp_mail($customer->email, $mail['subject'], $mail['body'], 'From: ' . $mail['from']);
+		add_filter('wp_mail_content_type', array($this, 'SetNotificationContentType'));
+			$customer = $this->RetrieveCustomer($customer_id);
+			wp_mail($customer->email, $mail['subject'], $mail['body'], 'From: ' . $mail['from']);
+		remove_filter('wp_mail_content_type', array($this, 'SetNotificationContentType'));
 	}
 
+		// TODO: Consider a more general way to accomplish this. Perhaps move this to a utility of sorts.
+		private function SetNotificationContentType()
+		{
+			return 'text/html';
+		}
+
+
+	// Responsible for updating the customer credit card. 
+	// $args:
+	//		- $customer_id => String; Should be a valid Stripe Customer ID
+	//		- $card_token => String; A valid card token from the stripe.js api
 	public function UpdateCustomerCreditCard($customer_id, $card_token)
 	{
 		$this->SetupApiKey();
 
-		// $customer = $this->RetrieveCustomer($customer_id);
-		// $customer->card = $card_token;
-		// $customer->save();
+		$customer = $this->RetrieveCustomer($customer_id);
+		$customer->card = $card_token;
+		$customer->save();
 	}
 }
