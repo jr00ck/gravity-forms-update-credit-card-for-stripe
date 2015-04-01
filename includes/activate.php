@@ -18,8 +18,8 @@ class GFUCC4S_Activate
 
 	public function __construct()
 	{
-		$dir = explode('/', plugin_basename(__DIR__))[0];
-		$this->PluginName = sprintf('%s/%s.php', $dir, $dir);
+		$dir = explode('/', plugin_basename(__DIR__));
+		$this->PluginName = sprintf('%s/%s.php', $dir[0], $dir[0]);
 
 		register_activation_hook($this->PluginName, array($this, 'Activate'));
 
