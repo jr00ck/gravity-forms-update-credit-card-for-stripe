@@ -60,23 +60,24 @@ class GFUCC4S_Stripe
 	// message itself outside of the method because other objects might use
 	// this method and want to send differnt message for different situations.
 	// $args:
-	//		- $customer_id => String; Should be a valid Stripe Customer ID
+	//		- $customer => Customer; Should be a valid Stripe Customer
 	//		- $mail => Array;
 	//			- from => String; Who the mail is from
 	//			- subject => String; The subject of the email
 	//			- body => String; The body of the email in HTML format.
-	public function NotifyCustomerChargeFailed($customer_id, $mail)
+	public function NotifyCustomerChargeFailed($customer, $mail)
 	{
+		var_dump('NotifyCustomerChargeFailed', $customer, $mail);
+
 		$this->SetupApiKey();
 
 		add_filter('wp_mail_content_type', array($this, 'SetNotificationContentType'));
-			$customer = $this->RetrieveCustomer($customer_id);
 			wp_mail($customer->email, $mail['subject'], $mail['body'], 'From: ' . $mail['from']);
 		remove_filter('wp_mail_content_type', array($this, 'SetNotificationContentType'));
 	}
 
 		// TODO: Consider a more general way to accomplish this. Perhaps move this to a utility of sorts.
-		private function SetNotificationContentType()
+		public function SetNotificationContentType($content_type)
 		{
 			return 'text/html';
 		}

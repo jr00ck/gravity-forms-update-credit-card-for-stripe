@@ -68,12 +68,13 @@ class GFUCC4S_UI
 
 		// Retrieve the request's body and parse it as JSON
 		$input = @file_get_contents("php://input");
-		$event_json = json_decode($input);
-		$event_id = $event_json->id;
+		$event = json_decode($input);
+		$event_id = $event->id;
 
-		if (empty($event_id)) return;
+		if (empty($event) || empty($event_id)) return;
 
-		$event = $this->Stripe->RetrieveEvent($event_id);
+		// TODO: Make sure to uncomment this when we go to production
+		//$event = $this->Stripe->RetrieveEvent($event_id);
 
 		switch($event->type)
 		{
@@ -91,7 +92,8 @@ class GFUCC4S_UI
 		private function ProcessChargeFailed($event)
 		{
 			// TODO: Figure out how this is supposed to get set.
-			$customer_id = '1'; // $invoice->customer was used in the original plugin, but I'm not sure where $invoice comes from or how it gets set.
+			//$customer_id = $event->data->object->customer;
+			$customer_id = $this->GetUser();
 			$customer = $this->Stripe->RetrieveCustomer($customer_id);
 
 			$body = sprintf('
@@ -110,7 +112,7 @@ class GFUCC4S_UI
 				'body' => $body
 			);
 
-			$this->Stripe->NotifyCustomerChargeFailed($customer_id, $mail);
+			$this->Stripe->NotifyCustomerChargeFailed($customer, $mail);
 		}
 
 	// ** ENTRY POINT: called by "init" hook
