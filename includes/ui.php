@@ -23,7 +23,43 @@ class GFUCC4S_UI
 		add_action('init', array($this, 'ProcessUpdateCreditCardForm'));
 	}
 
+
+
+	// ** ENTRY POINT: called by "init" hook
+
 	// Delegates processing of different Stripe WebHook event types
+	// SAMPLE:
+	// {
+	//   "id": "tok_15mvga2Z364Xq6RATsH6j9EF",
+	//   "livemode": false,
+	//   "created": 1427932552,
+	//   "used": false,
+	//   "object": "token",
+	//   "type": "card",
+	//   "card": {
+	//     "id": "card_15mvga2Z364Xq6RAp2fnDhYB",
+	//     "object": "card",
+	//     "last4": "4242",
+	//     "brand": "Visa",
+	//     "funding": "credit",
+	//     "exp_month": 12,
+	//     "exp_year": 2034,
+	//     "country": "US",
+	//     "name": "asdfsad",
+	//     "address_line1": null,
+	//     "address_line2": null,
+	//     "address_city": null,
+	//     "address_state": null,
+	//     "address_zip": null,
+	//     "address_country": null,
+	//     "cvc_check": null,
+	//     "address_line1_check": null,
+	//     "address_zip_check": null,
+	//     "dynamic_last4": null,
+	//     "customer": null
+	//   },
+	//   "client_ip": "198.23.71.113"
+	// }
 	public function ProcessWebHook()
 	{
 		if (!(isset($_GET[self::STRIPE_WEBHOOK]) && $_GET[self::STRIPE_WEBHOOK] == '1'))
@@ -77,45 +113,32 @@ class GFUCC4S_UI
 			$this->Stripe->NotifyCustomerChargeFailed($customer_id, $mail);
 		}
 
+	// ** ENTRY POINT: called by "init" hook
+
 	// Handles the credit card update form. We have the form settings hard coded for now
 	// but we will need to create an admin interface for the user to configure the form
 	// at a later date.
+	// Sample: http://clients-freeupwebstudio-com.freeupinvoice.staging.wpengine.com/update-credit-card/?customer_id=cus_54zi2l1lydemYq
 	public function ProcessUpdateCreditCardForm()
 	{
-		$qs = $_POST['gform_ajax'];
-		if (empty($qs)) return;
+		$isForm = $_POST[sprintf('is_submit_%s', self::OPTIONS_FORM_ID)];
+		if (empty($isForm)) return;
 
-		$form_id = $this->GetKeyValue($qs, 'form_id');
-		if ($form_id != self::OPTIONS_FORM_ID) return;
+		// Get the user id to send to stripe
+		$customer_id = $this->GetUser();
 
-		// Get the logged in user id and stripe user id
-		$customer_id = $this->GetLoggedInUser();
-
-		// Grab all the fields. Minmum we need is:
-		// - Card Token
-		// - add more here...
 		$response = json_decode(str_replace('\\"', '"', $_POST['stripe_response']));
-		$this->Stripe->UpdateCustomerCreditCard($customer_id, $response->card->id);
+		$this->Stripe->UpdateCustomerCreditCard($customer_id, $response);
 	}
 
-		// Responsible for checking the current WordPress login if any. Then uses that to
-		// retrieve a Stripe Customer ID from the WP meta data.
-		private function GetLoggedInUser()
+		// Responsible for grabbing the customer id. Checks the login first, then the post, then the get.
+		private function GetUser()
 		{
-			return is_user_logged_in() ? get_user_meta(get_current_user_id(), '_stripe_customer_id', true) : false;
+			if (!empty($_POST['customer_id']))
+				return $_POST['customer_id'];
+			
+			if (!empty($_GET['customer_id']))
+				return $_GET['customer_id'];
 		}
 
-		// TODO: Consider moving this to a utility type object so other classes can access it.
-		private function GetKeyValue($qs, $key)
-		{
-			$pairs = explode('&', $qs);
-			foreach ($pairs as $pair)
-			{
-				$kv = explode('=', $pair);
-				if ($kv[0] == $key)
-					return $kv[1];
-			}
-
-			return '';
-		}
 }

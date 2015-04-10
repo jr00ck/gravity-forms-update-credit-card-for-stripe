@@ -85,13 +85,13 @@ class GFUCC4S_Stripe
 	// Responsible for updating the customer credit card. 
 	// $args:
 	//		- $customer_id => String; Should be a valid Stripe Customer ID
-	//		- $card_token => String; A valid card token from the stripe.js api
-	public function UpdateCustomerCreditCard($customer_id, $card_token)
+	//		- $response => String; A valid card response from the stripe.js api
+	public function UpdateCustomerCreditCard($customer_id, $response)
 	{
 		$this->SetupApiKey();
 
 		$customer = $this->RetrieveCustomer($customer_id);
-		$customer->card = $card_token;
-		$customer->save();
+		$customer->card = $response->id;
+		$save = $customer->save();
 	}
 }
