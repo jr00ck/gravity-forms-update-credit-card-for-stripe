@@ -94,5 +94,7 @@ class GFUCC4S_Stripe
 		$customer = $this->RetrieveCustomer($customer_id);
 		$customer->card = $response->id;
 		$save = $customer->save();
+
+		// var_export($save); die();
 	}
 }
