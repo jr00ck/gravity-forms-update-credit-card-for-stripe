@@ -67,7 +67,7 @@ class GFUCC4S_Stripe
 	//			- body => String; The body of the email in HTML format.
 	public function NotifyCustomerChargeFailed($customer, $mail)
 	{
-		var_dump('NotifyCustomerChargeFailed', $customer, $mail);
+		//var_dump('NotifyCustomerChargeFailed', $customer, $mail);
 
 		$this->SetupApiKey();
 
@@ -95,6 +95,6 @@ class GFUCC4S_Stripe
 		$customer->card = $response->id;
 		$save = $customer->save();
 
-		// var_export($save); die();
+		return $save;
 	}
 }

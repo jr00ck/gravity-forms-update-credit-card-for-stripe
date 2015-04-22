@@ -10,7 +10,7 @@ class GFUCC4S_UI
 	const STRIPE_WEBHOOK = 'fu_stripe_handler';
 
 	// TODO: Hard code these values before testing.
-	const OPTIONS_FORM_ID = '14';
+	const OPTIONS_FORM_ID = '1';
 	const UPDATE_CC_LINK = 'http://clients-freeupwebstudio-com.freeupinvoice.staging.wpengine.com/update-credit-card/';
 
 	private $Stripe;
@@ -123,19 +123,25 @@ class GFUCC4S_UI
 	// Sample: http://clients-freeupwebstudio-com.freeupinvoice.staging.wpengine.com/update-credit-card/?customer_id=cus_54zi2l1lydemYq
 	public function ProcessUpdateCreditCardForm($result, $value, $form, $field)
 	{
-
-		if($field->type == 'creditcard'){
-
+		if($field->type == 'creditcard')
+		{
 			// Get the user id to send to stripe
 			$customer_id = $this->GetUser();
 
 			$response = json_decode(str_replace('\\"', '"', $_POST['stripe_response']));
-			$result = $this->Stripe->UpdateCustomerCreditCard($customer_id, $response);
 
+			try {
+				$this->Stripe->UpdateCustomerCreditCard($customer_id, $response);
+			} catch (Exception $e) {
+				$err = $e->getJsonBody();
+				$err = $err['error'];
+
+				$result['is_valid'] = false;
+				$result['message'] = $err['message'];
+			}				
 		}
 
 		return $result;
-
 	}
 
 		// Responsible for grabbing the customer id. Checks the login first, then the post, then the get.
