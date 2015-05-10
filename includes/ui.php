@@ -74,7 +74,7 @@ class GFUCC4S_UI
 		if (empty($event) || empty($event_id)) return;
 
 		// TODO: Make sure to uncomment this when we go to production
-		//$event = $this->Stripe->RetrieveEvent($event_id);
+		$event = $this->Stripe->RetrieveEvent($event_id);
 
 		switch($event->type)
 		{
@@ -107,7 +107,10 @@ class GFUCC4S_UI
 			);
 
 			$mail = array(
-				'from' => '"' . html_entity_decode(get_bloginfo('name')) . '" <' . get_bloginfo('admin_email') . '>',
+				'headers' => array(
+					'From: ' . html_entity_decode(get_bloginfo('name')) . ' <' . get_bloginfo('admin_email') . '>',
+					'BCC: billing@freeupwebstudio.com'
+				);
 				'subject' => __('Failed Payment', self::STRIPE_WEBHOOK),
 				'body' => $body
 			);

@@ -62,7 +62,7 @@ class GFUCC4S_Stripe
 	// $args:
 	//		- $customer => Customer; Should be a valid Stripe Customer
 	//		- $mail => Array;
-	//			- from => String; Who the mail is from
+	//			- headers => Array of Strings; Who the mail is from, BCC address
 	//			- subject => String; The subject of the email
 	//			- body => String; The body of the email in HTML format.
 	public function NotifyCustomerChargeFailed($customer, $mail)
@@ -72,15 +72,15 @@ class GFUCC4S_Stripe
 		$this->SetupApiKey();
 
 		add_filter('wp_mail_content_type', array($this, 'SetNotificationContentType'));
-			wp_mail($customer->email, $mail['subject'], $mail['body'], 'From: ' . $mail['from']);
+		wp_mail($customer->email, $mail['subject'], $mail['body'], $mail['headers']);
 		remove_filter('wp_mail_content_type', array($this, 'SetNotificationContentType'));
 	}
 
-		// TODO: Consider a more general way to accomplish this. Perhaps move this to a utility of sorts.
-		public function SetNotificationContentType($content_type)
-		{
-			return 'text/html';
-		}
+	// TODO: Consider a more general way to accomplish this. Perhaps move this to a utility of sorts.
+	public function SetNotificationContentType($content_type)
+	{
+		return 'text/html';
+	}
 
 
 	// Responsible for updating the customer credit card. 
