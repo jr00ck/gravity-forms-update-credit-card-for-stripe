@@ -11,7 +11,7 @@ class GFUCC4S_UI
 
 	// TODO: Hard code these values before testing.
 	const OPTIONS_FORM_ID = '13';
-	const UPDATE_CC_LINK = 'http://clients-freeupwebstudio-com.freeupinvoice.staging.wpengine.com/update-credit-card/';
+	const UPDATE_CC_LINK = 'https://clients.freeupwebstudio.com/update-credit-card/';
 
 	private $Stripe;
 
@@ -110,7 +110,7 @@ class GFUCC4S_UI
 				'headers' => array(
 					'From: ' . html_entity_decode(get_bloginfo('name')) . ' <' . get_bloginfo('admin_email') . '>',
 					'BCC: billing@freeupwebstudio.com'
-				);
+				),
 				'subject' => __('Failed Payment', self::STRIPE_WEBHOOK),
 				'body' => $body
 			);
